@@ -78,39 +78,6 @@ services:
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=true"
 
-# Organizer - Unified HTPC/Home Server Web Interface
-  organizr:
-    container_name: organizr
-    restart: always
-    image: lsiocommunity/organizr
-    volumes:
-      - ${USERDIR}/docker/organizr:/config
-      - ${USERDIR}/docker/shared:/shared
-#    ports:
-#      - "XXXX:80"
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    networks:
-      - traefik_proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.backend=organizr"
-      - "traefik.frontend.rule=Host:organizr.${DOMAINNAME}"  
-#      - "traefik.frontend.rule=Host:${DOMAINNAME}; PathPrefixStrip: /organizr"
-      - "traefik.port=80"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.frontend.headers.SSLRedirect=true"
-      - "traefik.frontend.headers.STSSeconds=315360000"
-      - "traefik.frontend.headers.browserXSSFilter=true"
-      - "traefik.frontend.headers.contentTypeNosniff=true"
-      - "traefik.frontend.headers.forceSTSHeader=true"
-      - "traefik.frontend.headers.SSLHost=example.com"
-      - "traefik.frontend.headers.STSIncludeSubdomains=true"
-      - "traefik.frontend.headers.STSPreload=true"
-      - "traefik.frontend.headers.frameDeny=true"
-
 # phpMyAdmin - WebUI for MariaDB
 phpmyadmin:
     hostname: phpmyadmin
@@ -143,65 +110,12 @@ phpmyadmin:
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=true"
 
-######### DOCKER RELATED ##########
-
-# Watchtower - Automatic Update of Containers/Apps
-  watchtower:
-    container_name: watchtower
-    hostname: watchtower
-    restart: always
-    image: v2tec/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --schedule "0 0 4 * * *" --cleanup
-
-######### SMART HOME APPS ##########
-
-# Home Assistant - Smart Home Hub
-  homeassistant:
-    container_name: homeassistant
-    restart: always
-    image: homeassistant/home-assistant
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-      - /dev/ttyACM0:/dev/ttyACM0
-    volumes:
-      - ${USERDIR}/docker/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/shared:/shared
-#    ports:
-#      - "XXXX:8123"
-    privileged: true
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    networks:
-      - traefik_proxy
-      - default
-    labels:
-      - "traefik.enable=true"
-      - "traefik.backend=homeassistant"
-      - "traefik.frontend.rule=Host:hass.${DOMAINNAME}"
-      - "traefik.port=8123"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.frontend.headers.SSLRedirect=true"
-      - "traefik.frontend.headers.STSSeconds=315360000"
-      - "traefik.frontend.headers.browserXSSFilter=true"
-      - "traefik.frontend.headers.contentTypeNosniff=true"
-      - "traefik.frontend.headers.forceSTSHeader=true"
-      - "traefik.frontend.headers.SSLHost=example.com"
-      - "traefik.frontend.headers.STSIncludeSubdomains=true"
-      - "traefik.frontend.headers.STSPreload=true"
-      - "traefik.frontend.headers.frameDeny=true"
-
 ######### DOWNLOADERS ##########
 
-# Transmission with VPN – Bittorrent Downloader
-  transmission-vpn:
+# Transmission Bittorrent Downloader
+  transmission:
     container_name: transmission-vpn
-    image: haugene/transmission-openvpn
+    image: linuxserver/transmission
     cap_add:
       - NET_ADMIN
     devices:
@@ -240,47 +154,10 @@ phpmyadmin:
       - traefik_proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.backend=transmission-vpn"
+      - "traefik.backend=transmission"
 #      - "traefik.frontend.rule=Host:${DOMAINNAME}; PathPrefix: /transmission"
       - "traefik.frontend.rule=Host:transmission.${DOMAINNAME}"
       - "traefik.port=9091"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.frontend.headers.SSLRedirect=true"
-      - "traefik.frontend.headers.STSSeconds=315360000"
-      - "traefik.frontend.headers.browserXSSFilter=true"
-      - "traefik.frontend.headers.contentTypeNosniff=true"
-      - "traefik.frontend.headers.forceSTSHeader=true"
-      - "traefik.frontend.headers.SSLHost=example.com"
-      - "traefik.frontend.headers.STSIncludeSubdomains=true"
-      - "traefik.frontend.headers.STSPreload=true"
-      - "traefik.frontend.headers.frameDeny=true"
-
-# qBittorrent without VPN – Bittorrent Downloader (Alternative)
-  qbittorrent:
-    image: "linuxserver/qbittorrent"
-    container_name: "qbittorrent"
-    volumes:
-      - ${USERDIR}/docker/qbittorrent:/config
-      - ${USERDIR}/Downloads/completed:/downloads
-      - ${USERDIR}/docker/shared:/shared
-    ports:
-#      - "XXXX:8080"
-      - "6881:6881"
-      - "6881:6881/udp"
-    restart: always
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - UMASK_SET=002
-    networks:
-      - traefik_proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.backend=qbittorrent"
-#      - "traefik.frontend.rule=Host:${DOMAINNAME}; PathPrefixStrip: /qbittorrent"
-      - "traefik.frontend.rule=Host:qbit.${DOMAINNAME}"
-      - "traefik.port=XXXX"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.frontend.headers.SSLRedirect=true"
       - "traefik.frontend.headers.STSSeconds=315360000"
